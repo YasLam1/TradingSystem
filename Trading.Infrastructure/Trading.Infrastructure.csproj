@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Trading.Domain\Trading.Domain.csproj" />
+    <ProjectReference Include="..\Trading.Application\Trading.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="MarketData\" />
+    <Folder Include="Execution\" />
+    <Folder Include="Persistence\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
