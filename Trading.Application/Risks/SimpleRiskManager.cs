@@ -1,7 +1,7 @@
 ﻿using Trading.Domain.Entities;
 using Trading.Domain.Interfaces;
 
-namespace Trading.Application.Services;
+namespace Trading.Application.Risks;
 
 public class SimpleRiskManager : IRiskManager
 {

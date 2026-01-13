@@ -4,12 +4,12 @@ using Trading.Domain.Interfaces;
 namespace Trading.Application.UseCases;
 
 public class MonoStrategyTradingLoop(IMarketDataFeed feed, IStrategy strategy, IRiskManager risk, 
-    IOrderExecutor router, Account account, string symbol)
+    IOrderExecutor executor, Account account, string symbol)
 {
     private readonly IMarketDataFeed _feed = feed;
     private readonly IStrategy _strategy = strategy;
     private readonly IRiskManager _risk = risk;
-    private readonly IOrderExecutor _router = router;
+    private readonly IOrderExecutor _executor = executor;
     private readonly Account _account = account;
     private readonly string _symbol = symbol;
 
@@ -22,7 +22,7 @@ public class MonoStrategyTradingLoop(IMarketDataFeed feed, IStrategy strategy, I
 
             if (!_risk.IsOrderAllowed(order)) continue;
 
-            Execution? exec = await _router.ExecuteOrderAsync(order, quote, ct);
+            Execution? exec = await _executor.ExecuteOrderAsync(order, quote, ct);
             _account.UpdateAccountWithExecution(exec);
 
             _account.Positions.TryGetValue(_symbol, out Position? pos);
