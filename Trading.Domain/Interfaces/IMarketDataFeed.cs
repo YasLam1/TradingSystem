@@ -4,5 +4,5 @@ namespace Trading.Domain.Interfaces;
 
 public interface IMarketDataFeed
 {
-    IAsyncEnumerable<Quote> SubscribeAsync(string symbol, CancellationToken ct);
+    IAsyncEnumerable<Quote> StartPriceStreamAsync(string symbol, CancellationToken ct);
 }

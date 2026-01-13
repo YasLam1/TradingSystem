@@ -3,5 +3,5 @@ namespace Trading.Domain.Interfaces;
 
 public interface IRiskManager
 {
-    bool Approve(Order order);
+    bool IsOrderAllowed(Order order);
 }

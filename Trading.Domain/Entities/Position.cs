@@ -3,8 +3,8 @@
 public class Position
 {
     public string Symbol { get; set; }
-    public int Quantity { get; private set; }
-    public decimal AveragePrice { get; private set; }
+    public int NetQuantity { get; private set; }
+    public decimal AverageEntryPrice { get; private set; }
 
     public Position(string symbol) => Symbol = symbol;
 
@@ -14,43 +14,43 @@ public class Position
             return;
 
         // Currently short
-        if (Quantity < 0)
+        if (NetQuantity < 0)
         {
-            int shortAbs = Math.Abs(Quantity);
+            int shortAbs = Math.Abs(NetQuantity);
 
             if (quantity < shortAbs)
             {
                 // Partial cover
-                Quantity += quantity;
+                NetQuantity += quantity;
                 return;
             }
             else
             {
                 // Full cover
                 quantity -= shortAbs;
-                Quantity = 0;
-                AveragePrice = 0m;
+                NetQuantity = 0;
+                AverageEntryPrice = 0m;
             }
         }
 
         // Flat or long
         if (quantity > 0)
         {
-            if (Quantity == 0)
+            if (NetQuantity == 0)
             {
                 // Open new long
-                Quantity = quantity;
-                AveragePrice = price;
+                NetQuantity = quantity;
+                AverageEntryPrice = price;
             }
             else
             {
                 // Increase existing long
                 decimal totalCost =
-                    (AveragePrice * Quantity) +
+                    (AverageEntryPrice * NetQuantity) +
                     (price * quantity);
 
-                Quantity += quantity;
-                AveragePrice = totalCost / Quantity;
+                NetQuantity += quantity;
+                AverageEntryPrice = totalCost / NetQuantity;
             }
         }
     }
@@ -61,47 +61,47 @@ public class Position
             return;
 
         // Currently long
-        if (Quantity > 0)
+        if (NetQuantity > 0)
         {
-            if (quantity < Quantity)
+            if (quantity < NetQuantity)
             {
                 // Partial sell
-                Quantity -= quantity;
+                NetQuantity -= quantity;
                 return;
             }
             else
             {
                 // Full close
-                quantity -= Quantity;
-                Quantity = 0;
-                AveragePrice = 0m;
+                quantity -= NetQuantity;
+                NetQuantity = 0;
+                AverageEntryPrice = 0m;
             }
         }
 
         // Flat or short
         if (quantity > 0)
         {
-            if (Quantity == 0)
+            if (NetQuantity == 0)
             {
                 // Open new short
-                Quantity = -quantity;
-                AveragePrice = price;
+                NetQuantity = -quantity;
+                AverageEntryPrice = price;
             }
             else
             {
                 // Increase existing short
-                int absQty = Math.Abs(Quantity);
+                int absQty = Math.Abs(NetQuantity);
 
                 decimal totalProceeds =
-                    (AveragePrice * absQty) +
+                    (AverageEntryPrice * absQty) +
                     (price * quantity);
 
-                Quantity -= quantity;
-                AveragePrice = totalProceeds / Math.Abs(Quantity);
+                NetQuantity -= quantity;
+                AverageEntryPrice = totalProceeds / Math.Abs(NetQuantity);
             }
         }
     }
 
     public decimal UnrealizedPnl(decimal markPrice)
-        => (markPrice - AveragePrice) * Quantity;
+        => (markPrice - AverageEntryPrice) * NetQuantity;
 }
