@@ -9,6 +9,7 @@
 //    symbol: "AAPL"
 //).RunAsync(CancellationToken.None).GetAwaiter().GetResult();
 
+using System.Linq.Expressions;
 using Trading.Domain.Interfaces;
 using Trading.Infrastructure.MarketData;
 
@@ -16,5 +17,7 @@ string apiKey =
     Environment.GetEnvironmentVariable("FINNHUB_API_KEY")
     ?? throw new Exception("API key missing");
 
+const string symbol = "BINANCE:BTCUSDT";
+
 IMarketDataFeed feed = new FinnhubMarketDataFeed(apiKey);
-TestingDataFeed.Test(feed, "AAPL").GetAwaiter().GetResult();
+TestingDataFeed.Test(feed, symbol).GetAwaiter().GetResult();

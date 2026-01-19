@@ -1,5 +1,4 @@
-﻿
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -36,12 +35,11 @@ public class FinnhubMarketDataFeed : IMarketDataFeed
             true,
             ct);
 
-        var buffer = new byte[8192];
+        byte[] buffer = new byte[8192];
 
         while (!ct.IsCancellationRequested && ws.State == WebSocketState.Open)
         {
-            var result = await ws.ReceiveAsync(
-                new ArraySegment<byte>(buffer), ct);
+            var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
 
             if (result.MessageType == WebSocketMessageType.Close)
                 break;
