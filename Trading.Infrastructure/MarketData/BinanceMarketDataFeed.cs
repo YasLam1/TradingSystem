@@ -49,4 +49,9 @@ public class BinanceMarketDataFeed : IMarketDataFeed
             }
         }
     }
+
+    public Task<string> GetSymbolFromIsinAsync(string isin, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
 }

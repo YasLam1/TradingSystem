@@ -32,4 +32,9 @@ public class MockMarketDataFeed : IMarketDataFeed
             await Task.Delay(50, ct);
         }
     }
+
+    public Task<string> GetSymbolFromIsinAsync(string isin, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
 }

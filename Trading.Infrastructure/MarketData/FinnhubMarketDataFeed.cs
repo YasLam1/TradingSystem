@@ -11,8 +11,9 @@ public class FinnhubMarketDataFeed : IMarketDataFeed
 {
     private readonly string _apiKey;
 
-    public FinnhubMarketDataFeed(string apiKey) 
-        => _apiKey = apiKey;
+    public FinnhubMarketDataFeed() 
+        => _apiKey = Environment.GetEnvironmentVariable("FINNHUB_API_KEY")
+                     ?? throw new Exception("API key missing");
 
     public async IAsyncEnumerable<Quote> StartPriceStreamAsync(
         string symbol, [EnumeratorCancellation] CancellationToken ct)
@@ -69,5 +70,39 @@ public class FinnhubMarketDataFeed : IMarketDataFeed
                 }
             }
         }
+    }
+
+    public async Task<string> GetSymbolFromIsinAsync(
+        string isin, CancellationToken ct)
+    {
+        using var http = new HttpClient();
+
+        string url = $"https://finnhub.io/api/v1/search?q={isin}&token={_apiKey}";
+
+        var json = await http.GetStringAsync(url, ct);
+
+        using var doc = JsonDocument.Parse(json);
+
+        var results = doc.RootElement
+            .GetProperty("result")
+            .EnumerateArray();
+
+        foreach (var item in results)
+        {
+            // Prefer exact ISIN match if available
+            if (item.TryGetProperty("isin", out var isinEl) &&
+                isinEl.GetString() == isin)
+            {
+                return item.GetProperty("symbol").GetString();
+            }
+        }
+
+        // fallback: take first result if no isin field exists
+        return doc.RootElement
+            .GetProperty("result")
+            .EnumerateArray()
+            .FirstOrDefault()
+            .GetProperty("symbol")
+            .GetString();
     }
 }

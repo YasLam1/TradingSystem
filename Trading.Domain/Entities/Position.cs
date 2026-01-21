@@ -1,4 +1,6 @@
-﻿namespace Trading.Domain.Entities;
+﻿using Trading.Domain.Enums;
+
+namespace Trading.Domain.Entities;
 
 public class Position
 {
@@ -100,6 +102,14 @@ public class Position
                 AverageEntryPrice = totalProceeds / Math.Abs(NetQuantity);
             }
         }
+    }
+
+    public void Apply(Execution exec)
+    {
+        if (exec.Side == OrderSide.Buy)
+            Buy(exec.FilledQuantity, exec.FillPrice);
+        else
+            Sell(exec.FilledQuantity, exec.FillPrice);
     }
 
     public decimal UnrealizedPnl(decimal markPrice)

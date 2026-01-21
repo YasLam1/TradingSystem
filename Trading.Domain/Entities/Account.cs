@@ -26,27 +26,18 @@ public class Account
 
     public void UpdateAccountWithExecution(Execution exec)
     {
-        var pos = GetOrCreatePosition(exec.Symbol);
+        Position pos = GetOrCreatePosition(exec.Symbol);
+        pos.Apply(exec);
 
         if (exec.Side == OrderSide.Buy)
-        {
-            // Buying: either increase long or cover short
-            // Cash goes down by price * qty
-            pos.Buy(exec.FilledQuantity, exec.FillPrice);
             Cash -= exec.FilledQuantity * exec.FillPrice;
-        }
         else
-        {
-            // Selling: either increase short or reduce long
-            // Cash goes up by price * qty
-            pos.Sell(exec.FilledQuantity, exec.FillPrice);
             Cash += exec.FilledQuantity * exec.FillPrice;
-        }
     }
 
     public decimal UnrealizedPnl(string symbol, decimal markPrice)
     {
-        return Positions.TryGetValue(symbol, out var pos)
+        return Positions.TryGetValue(symbol, out Position pos)
             ? pos.UnrealizedPnl(markPrice)
             : 0m;
     }
