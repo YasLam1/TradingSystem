@@ -40,4 +40,25 @@ public static class CsvQuoteUtils
             };
         }
     }
+
+    public static IEnumerable<Quote> ReadV2(string filePath, string symbol)
+    {
+        var lines = File.ReadAllLines(filePath).Skip(1); // skip header
+
+        foreach (string line in lines)
+        {
+            var parts = line.Split(',');
+            DateTime time = DateTime.Parse(parts[0], CultureInfo.InvariantCulture);
+            decimal price = decimal.Parse(parts[4], CultureInfo.InvariantCulture);
+
+            yield return new Quote
+            {
+                Symbol = symbol,
+                Timestamp = time,
+                Bid = price,
+                Ask = price,
+                LastTradedPrice = price
+            };
+        }
+    }
 }

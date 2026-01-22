@@ -4,15 +4,13 @@ public class BacktestResult
 {
     public decimal TotalReturnPct { get; init; }
     public decimal MaxDrawdownPct { get; init; }
-    public int ExecutionCount { get; init; }
 
     public static BacktestResult From(RawBacktestData raw)
     {
         return new BacktestResult
         {
             TotalReturnPct = ComputeTotalReturn(raw),
-            MaxDrawdownPct = ComputeMaxDrawdown(raw.EquityCurve),
-            ExecutionCount = raw.Executions.Count
+            MaxDrawdownPct = ComputeMaxDrawdown(raw.EquityCurve)
         };
     }
 

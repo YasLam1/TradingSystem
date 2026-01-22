@@ -1,6 +1,5 @@
 ﻿using Trading.Application.DTOs;
 using Trading.Domain.Entities;
-using Trading.Domain.Enums;
 using Trading.Domain.Interfaces;
 
 namespace Trading.Application.Backtesting;
@@ -14,32 +13,26 @@ public class BacktestEngine(
     private readonly IStrategy _strategy = strategy;
     private readonly IOrderExecutorSimulator _execution = execution;
 
-    public RawBacktestData Run(string symbol, DateTime from, DateTime to, decimal initialCapital)
+    public RawBacktestData Run(string symbol, DateTime from, DateTime to, Account account)
     {
-        Position position = new(symbol);
+        decimal initialCapital = account.Cash;
+
         List<Execution> executions = [];
         List<decimal> equityCurve = [];
-
-        decimal cash = initialCapital;
 
         foreach (Quote quote in _dataFeed.GetQuotes(symbol, from, to))
         {
             Order order = _strategy.DecideActionFromQuote(quote);
-            if (order == null) continue;
 
-            Execution exec = _execution.Execute(order, quote);
+            if (order != null)
+            {
+                Execution exec = _execution.Execute(order, quote);
+                account.UpdateAccountWithExecution(exec);
+                executions.Add(exec);
+            }
 
-            // apply
-            position.Apply(exec);
-            executions.Add(exec);
-
-            // cash update
-            decimal notional = exec.FillPrice * exec.FilledQuantity;
-            if (exec.Side == OrderSide.Buy) cash -= notional;
-            else cash += notional;
-
-            // equity snapshot
-            decimal equity = cash + (position.NetQuantity * quote.Bid);
+            // Always mark-to-market
+            decimal equity = account.Equity(quote.LastTradedPrice);
             equityCurve.Add(equity);
         }
 

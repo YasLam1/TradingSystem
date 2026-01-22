@@ -1,7 +1,8 @@
 ﻿using Trading.Application.Backtesting;
-using Trading.Application.DTOs;
 using Trading.Application.Risks;
 using Trading.Application.Strategies;
+using Trading.Domain.Entities;
+using Trading.Domain.Interfaces;
 using Trading.Infrastructure.HistoricalData;
 using Trading.Infrastructure.OrderExecutors;
 
@@ -10,24 +11,23 @@ public class TestingBacktest
     public static void Test()
     {
         const string symbol = "AAPL";
-        const int maxQtePerOrder = 100;
+        const decimal initialCapital = 10000;
+
+        Account account = new("BACKTEST", initialCapital);
+
+        IRiskManager riskManager = new SmartRiskManager(account);
 
         BacktestEngine backtestEngine = new(
-            dataFeed: new YahooHistoricalDataFeed(),
-            strategy: new EmaPullbackRsiAtrStrategy(symbol, 
-                            new SimpleRiskManager(maxQtePerOrder),
-                            new Trading.Domain.Entities.Account(null, 10_000m)),
+            dataFeed: new MockHistoricalDataFeed(),
+            strategy: new EmaPullbackRsiAtrStrategy(symbol, riskManager, account),
             execution: new MarketExecutionSimulator()
             );
 
         var raw = backtestEngine.Run(symbol,
-            from: DateTime.Parse("06/02/2020"),
+            from: DateTime.Parse("06/02/2012"),
             to: DateTime.Now,
-            initialCapital: 10_000m);
-
-        var result = BacktestResult.From(raw);
+            account: account);
 
         JsonUtils.Export(raw, nameof(raw));
-        JsonUtils.Export(result, nameof(result));
     }
 }

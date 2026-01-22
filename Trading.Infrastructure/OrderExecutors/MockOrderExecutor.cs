@@ -17,10 +17,10 @@ public sealed class MockOrderExecutor : IOrderExecutor
         }
         else if (order.Type == OrderType.Limit)
         {
-            if (!order.Price.HasValue)
+            if (!order.ReferencePrince.HasValue)
                 throw new InvalidOperationException("Limit order requires Price");
 
-            decimal limit = order.Price.Value;
+            decimal limit = order.ReferencePrince.Value;
 
             bool marketable = order.Side == OrderSide.Buy
                 ? lastQuote.Ask <= limit

@@ -38,6 +38,7 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
     private decimal? _previousClose;
     private decimal? _currentRsi;
     private decimal? _previousRsi;
+    private decimal _lastMarketPrice;
 
     private int _barIndex;
 
@@ -51,8 +52,8 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
     const int BAR_DURATION_MIN = 15;
     private readonly BarBuilder _barBuilder = new(TimeSpan.FromMinutes(BAR_DURATION_MIN));
 
-    const decimal QTE_RISK_PERCENT = 100;
-    private readonly FixedRiskPositionSizer _positionSizer = new(QTE_RISK_PERCENT);
+    const decimal QTE_RISK_PERCENT = 0.01m;
+    private readonly QuantityCalculator _qteCalculator = new(QTE_RISK_PERCENT);
     #endregion
 
     public EmaPullbackRsiAtrStrategy(
@@ -81,6 +82,7 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
             return null;
 
         _barIndex++;
+        _lastMarketPrice = bar.Close;
 
         UpdateEma(ref _emaFast, EMA_FAST_PERIOD, bar.Close);
         UpdateEma(ref _emaSlow, EMA_SLOW_PERIOD, bar.Close);
@@ -151,12 +153,15 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
         decimal risk = entry - stop;
         decimal target = entry + RISK_REWARD_RATIO * risk;
 
-        _quantity = _positionSizer.CalculateQuantity(_account, entry, stop);
+        _quantity = _qteCalculator.Calculate(_account, entry, stop);
 
-        var buy = CreateOrder(OrderSide.Buy);
+        var buy = CreateOrder(OrderSide.Buy, entry);
 
-        if (!_riskManager.IsOrderAllowed(buy))
-            return null;
+        //if (!_riskManager.IsOrderAllowed(buy))
+        //    return null;
+
+        buy = _riskManager.AdjustOrder(buy);
+        _quantity = buy.Quantity;
 
         _entryPrice = entry;
         _stopPrice = stop;
@@ -184,12 +189,21 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
 
     private Order ExitTrade()
     {
-        Order sell = CreateOrder(OrderSide.Sell);
-
-        if (!_riskManager.IsOrderAllowed(sell))
+        if (!_account.Positions.TryGetValue(_symbol, out var pos))
             return null;
 
+        int quantity = Math.Abs(pos.NetQuantity);
+
+        if (quantity <= 0)
+            return null;
+
+        Order sell = CreateOrder(OrderSide.Sell, _lastMarketPrice);
+
+        //if (!_riskManager.IsOrderAllowed(sell))
+        //    return null;
+
         ResetPosition();
+
         _cooldownUntil = _barIndex + COOLDOWN_BARS;
 
         return sell;
@@ -265,12 +279,14 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
             : _averageGain.Value / _averageLoss.Value;
 
         _previousRsi = _currentRsi;
-        _currentRsi = 100 - (100 / (1 + rs));
+        _currentRsi = _averageLoss == 0 
+            ? 100 
+            : 100 - (100 / (1 + rs));
 
         _previousClose = close;
     }
 
-    private Order CreateOrder(OrderSide side)
+    private Order CreateOrder(OrderSide side, decimal referencePrince)
     {
         return new Order
         {
@@ -278,7 +294,8 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
             Symbol = _symbol,
             Side = side,
             Type = OrderType.Market,
-            Quantity = _quantity
+            Quantity = _quantity,
+            ReferencePrince = referencePrince
         };
     }
 }

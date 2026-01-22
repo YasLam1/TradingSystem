@@ -33,8 +33,8 @@ public class YahooHistoricalDataFeed : IHistoricalDataFeed
         catch
         {
             if (!File.Exists(csvFallbackPath))
-                csvFallbackPath = @"C:\Users\Yassine Lamrhary\Downloads\fake_price_data.csv";
-                //return [];
+                //csvFallbackPath = @"C:\Users\Yassine Lamrhary\Downloads\fake_price_data.csv";
+                return [];
 
             return CsvQuoteUtils.Read(csvFallbackPath, symbol)
                 .Where(q => q.Timestamp >= from && q.Timestamp <= to);

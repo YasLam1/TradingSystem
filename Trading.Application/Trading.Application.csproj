@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Trading.Domain\Trading.Domain.csproj" />
+    <Compile Remove="UseCases\**" />
+    <EmbeddedResource Remove="UseCases\**" />
+    <None Remove="UseCases\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UseCases\" />
+    <ProjectReference Include="..\Trading.Domain\Trading.Domain.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

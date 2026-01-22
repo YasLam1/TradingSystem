@@ -21,7 +21,7 @@ public sealed class ApiOrderExecutor : IOrderExecutor
             side = order.Side.ToString(),
             type = order.Type.ToString(),
             quantity = order.Quantity,
-            price = order.Price,
+            price = order.ReferencePrince,
             context = new { bid = lastQuote.Bid, ask = lastQuote.Ask, ts = lastQuote.Timestamp }
         };
 
