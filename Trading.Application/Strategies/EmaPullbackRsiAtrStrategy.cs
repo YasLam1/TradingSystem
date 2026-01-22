@@ -24,8 +24,9 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
     private const int COOLDOWN_BARS = 1;
 
     private readonly string _symbol;
-    private readonly int _quantity;
     private readonly IRiskManager _riskManager;
+    private readonly Account _account;
+    private int _quantity;
 
     private decimal? _emaFast;
     private decimal? _emaSlow;
@@ -47,17 +48,21 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
 
     private int _cooldownUntil;
 
-    private readonly BarBuilder _barBuilder = new(TimeSpan.FromMinutes(15));
+    const int BAR_DURATION_MIN = 15;
+    private readonly BarBuilder _barBuilder = new(TimeSpan.FromMinutes(BAR_DURATION_MIN));
+
+    const decimal QTE_RISK_PERCENT = 100;
+    private readonly FixedRiskPositionSizer _positionSizer = new(QTE_RISK_PERCENT);
     #endregion
 
     public EmaPullbackRsiAtrStrategy(
         string symbol,
-        int quantity,
-        IRiskManager riskManager)
+        IRiskManager riskManager,
+        Account account)
     {
         _symbol = symbol;
-        _quantity = quantity;
         _riskManager = riskManager;
+        _account = account;
     }
 
     public Order DecideActionFromQuote(Quote quote)
@@ -114,17 +119,14 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
 
     private bool IsUptrend(decimal price)
     {
-        return _emaFast > _emaSlow &&
-               price > _emaSlow;
+        return _emaFast > _emaSlow && price > _emaSlow;
     }
 
     private bool IsPullback(decimal price)
     {
         decimal distance = Math.Abs(price - _emaFast.Value);
         decimal allowed = PULLBACK_ATR_BAND * _atr.Value;
-
-        return distance <= allowed &&
-               price >= _emaFast;
+        return distance <= allowed && price >= _emaFast;
     }
 
     private bool IsMomentumPositive()
@@ -132,8 +134,7 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
         if (_previousRsi == null)
             return false;
 
-        return _currentRsi >= RSI_MIN_LEVEL &&
-               _currentRsi > _previousRsi;
+        return _currentRsi >= RSI_MIN_LEVEL && _currentRsi > _previousRsi;
     }
 
     private bool ShouldEnterTrade(Bar bar)
@@ -149,6 +150,8 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
         decimal stop = entry - STOP_ATR_MULTIPLIER * _atr.Value;
         decimal risk = entry - stop;
         decimal target = entry + RISK_REWARD_RATIO * risk;
+
+        _quantity = _positionSizer.CalculateQuantity(_account, entry, stop);
 
         var buy = CreateOrder(OrderSide.Buy);
 
@@ -181,7 +184,7 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
 
     private Order ExitTrade()
     {
-        var sell = CreateOrder(OrderSide.Sell);
+        Order sell = CreateOrder(OrderSide.Sell);
 
         if (!_riskManager.IsOrderAllowed(sell))
             return null;

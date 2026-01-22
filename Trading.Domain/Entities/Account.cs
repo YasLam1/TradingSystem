@@ -41,4 +41,14 @@ public class Account
             ? pos.UnrealizedPnl(markPrice)
             : 0m;
     }
+
+    public decimal Equity(decimal markPrice)
+    {
+        decimal unrealized = 0m;
+
+        foreach (var pos in Positions.Values)
+            unrealized += pos.UnrealizedPnl(markPrice);
+
+        return Cash + unrealized;
+    }
 }

@@ -10,12 +10,13 @@ public class TestingBacktest
     public static void Test()
     {
         const string symbol = "AAPL";
-        const int tradeQte = 10;
         const int maxQtePerOrder = 100;
 
         BacktestEngine backtestEngine = new(
             dataFeed: new YahooHistoricalDataFeed(),
-            strategy: new EmaDipStrategy(symbol, tradeQte, new SimpleRiskManager(maxQtePerOrder)),
+            strategy: new EmaPullbackRsiAtrStrategy(symbol, 
+                            new SimpleRiskManager(maxQtePerOrder),
+                            new Trading.Domain.Entities.Account(null, 10_000m)),
             execution: new MarketExecutionSimulator()
             );
 

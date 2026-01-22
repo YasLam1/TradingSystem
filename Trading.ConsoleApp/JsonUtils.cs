@@ -17,7 +17,7 @@ public class JsonUtils
         Process.Start(new ProcessStartInfo
         {
             FileName = filePath,
-            UseShellExecute = false
+            UseShellExecute = true
         });
     }
 }
