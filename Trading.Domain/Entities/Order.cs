@@ -9,5 +9,5 @@ public class Order
     public OrderSide Side { get; set; }
     public OrderType Type { get; set; }
     public int Quantity { get; set; }
-    public decimal? ReferencePrince { get; set; } // For risk checks
+    public decimal? ReferencePrice { get; set; } // For risk checks
 }

@@ -1,10 +1,9 @@
 ﻿using Trading.Application.Backtesting;
-using Trading.Application.Risks;
-using Trading.Application.Strategies;
+using Trading.Domain.Risks;
 using Trading.Domain.Entities;
 using Trading.Domain.Interfaces;
-using Trading.Infrastructure.HistoricalData;
-using Trading.Infrastructure.OrderExecutors;
+using Trading.Domain.Strategies;
+using Trading.Simulation;
 
 public class TestingBacktest
 {
@@ -15,7 +14,7 @@ public class TestingBacktest
 
         Account account = new("BACKTEST", initialCapital);
 
-        IRiskManager riskManager = new SmartRiskManager(account);
+        IRiskManager riskManager = new RiskManager(account);
 
         BacktestEngine backtestEngine = new(
             dataFeed: new MockHistoricalDataFeed(),

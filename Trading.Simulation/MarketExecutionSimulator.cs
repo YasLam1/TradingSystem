@@ -2,7 +2,7 @@
 using Trading.Domain.Enums;
 using Trading.Domain.Interfaces;
 
-namespace Trading.Infrastructure.OrderExecutors;
+namespace Trading.Simulation;
 
 public class MarketExecutionSimulator : IOrderExecutorSimulator
 {
@@ -24,4 +24,3 @@ public class MarketExecutionSimulator : IOrderExecutorSimulator
         };
     }
 }
-

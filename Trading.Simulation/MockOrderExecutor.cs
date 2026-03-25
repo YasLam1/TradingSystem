@@ -2,7 +2,7 @@
 using Trading.Domain.Enums;
 using Trading.Domain.Interfaces;
 
-namespace Trading.Infrastructure.OrderExecutors;
+namespace Trading.Simulation;
 
 public sealed class MockOrderExecutor : IOrderExecutor
 {
@@ -17,10 +17,10 @@ public sealed class MockOrderExecutor : IOrderExecutor
         }
         else if (order.Type == OrderType.Limit)
         {
-            if (!order.ReferencePrince.HasValue)
+            if (!order.ReferencePrice.HasValue)
                 throw new InvalidOperationException("Limit order requires Price");
 
-            decimal limit = order.ReferencePrince.Value;
+            decimal limit = order.ReferencePrice.Value;
 
             bool marketable = order.Side == OrderSide.Buy
                 ? lastQuote.Ask <= limit

@@ -1,9 +1,9 @@
-﻿using Trading.Application.Services;
-using Trading.Domain.Entities;
+﻿using Trading.Domain.Entities;
 using Trading.Domain.Enums;
 using Trading.Domain.Interfaces;
+using Trading.Domain.Services;
 
-namespace Trading.Application.Strategies;
+namespace Trading.Domain.Strategies;
 
 public class EmaPullbackRsiAtrStrategy : IStrategy
 {
@@ -21,6 +21,7 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
     private const decimal RISK_REWARD_RATIO = 2.5m;
 
     private const int MAX_HOLD_DAYS = 15;
+    private const int MAX_HOLD_BARS = 20;
     private const int COOLDOWN_BARS = 1;
 
     private readonly string _symbol;
@@ -38,9 +39,10 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
     private decimal? _previousClose;
     private decimal? _currentRsi;
     private decimal? _previousRsi;
-    private decimal _lastMarketPrice;
+    private decimal _highestPrice;
 
     private int _barIndex;
+    private int _entryBarIndex;
 
     private decimal? _entryPrice;
     private decimal? _stopPrice;
@@ -82,7 +84,6 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
             return null;
 
         _barIndex++;
-        _lastMarketPrice = bar.Close;
 
         UpdateEma(ref _emaFast, EMA_FAST_PERIOD, bar.Close);
         UpdateEma(ref _emaSlow, EMA_SLOW_PERIOD, bar.Close);
@@ -128,7 +129,7 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
     {
         decimal distance = Math.Abs(price - _emaFast.Value);
         decimal allowed = PULLBACK_ATR_BAND * _atr.Value;
-        return distance <= allowed && price >= _emaFast;
+        return distance <= allowed; //&& price >= _emaFast;
     }
 
     private bool IsMomentumPositive()
@@ -156,54 +157,69 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
         _quantity = _qteCalculator.Calculate(_account, entry, stop);
 
         var buy = CreateOrder(OrderSide.Buy, entry);
-
-        //if (!_riskManager.IsOrderAllowed(buy))
-        //    return null;
-
         buy = _riskManager.AdjustOrder(buy);
+
+        if (buy == null || buy.Quantity <= 0)
+            return null;
+
         _quantity = buy.Quantity;
 
         _entryPrice = entry;
+        _highestPrice = entry;
         _stopPrice = stop;
         _targetPrice = target;
         _entryTime = bar.Timestamp;
         _cooldownUntil = _barIndex + COOLDOWN_BARS;
+        _entryBarIndex = _barIndex;
 
         return buy;
     }
 
     private Order ManageOpenTrade(Bar bar)
     {
+        _highestPrice = Math.Max(_highestPrice, bar.High);
+
+        decimal newStop = _highestPrice - STOP_ATR_MULTIPLIER * _atr.Value;
+        if (newStop > _stopPrice) _stopPrice = newStop;
+
         if (bar.Low <= _stopPrice)
-            return ExitTrade();
+            return ExitTrade(_stopPrice.Value);
 
-        if (bar.High >= _targetPrice)
-            return ExitTrade();
+        //if (bar.High >= _targetPrice)
+        //    return ExitTrade(_targetPrice.Value);
 
-        if ((bar.Timestamp - _entryTime).TotalDays >= MAX_HOLD_DAYS)
-            return ExitTrade();
+        //if ((bar.Timestamp - _entryTime).TotalDays >= MAX_HOLD_DAYS)
+        //    return ExitTrade(bar.Close);
+
+        if (_barIndex - _entryBarIndex >= MAX_HOLD_BARS)
+            return ExitTrade(bar.Close);
 
         _previousBar = bar;
         return null;
     }
 
-    private Order ExitTrade()
+    private Order ExitTrade(decimal fillPrice)
     {
         if (!_account.Positions.TryGetValue(_symbol, out var pos))
             return null;
 
-        int quantity = Math.Abs(pos.NetQuantity);
+        int qty = Math.Abs(pos.NetQuantity);
+        if (qty <= 0) return null;
 
-        if (quantity <= 0)
-            return null;
+        Order sell = new()
+        {
+            Id = Guid.NewGuid(),
+            Symbol = _symbol,
+            Side = OrderSide.Sell,
+            Type = OrderType.Market,
+            Quantity = qty,
+            ReferencePrice = fillPrice
+        };
 
-        Order sell = CreateOrder(OrderSide.Sell, _lastMarketPrice);
-
-        //if (!_riskManager.IsOrderAllowed(sell))
-        //    return null;
+        sell = _riskManager.AdjustOrder(sell);
+        if (sell == null) return null;
 
         ResetPosition();
-
         _cooldownUntil = _barIndex + COOLDOWN_BARS;
 
         return sell;
@@ -279,8 +295,8 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
             : _averageGain.Value / _averageLoss.Value;
 
         _previousRsi = _currentRsi;
-        _currentRsi = _averageLoss == 0 
-            ? 100 
+        _currentRsi = _averageLoss == 0
+            ? 100
             : 100 - (100 / (1 + rs));
 
         _previousClose = close;
@@ -295,7 +311,7 @@ public class EmaPullbackRsiAtrStrategy : IStrategy
             Side = side,
             Type = OrderType.Market,
             Quantity = _quantity,
-            ReferencePrince = referencePrince
+            ReferencePrice = referencePrince
         };
     }
 }

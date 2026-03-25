@@ -1,6 +1,6 @@
 ﻿using Trading.Domain.Entities;
 
-namespace Trading.Application.Services;
+namespace Trading.Domain.Services;
 
 /// <summary>
 /// Choose quantity so that if stop is hit,
@@ -20,9 +20,7 @@ public class QuantityCalculator
         decimal maxLoss = equity * _riskPercent;
 
         decimal stopDistance = Math.Abs(entry - stop);
-
-        if (stopDistance <= 0)
-            return 0;
+        if (stopDistance == 0) return 0;
 
         decimal rawQty = maxLoss / stopDistance;
 

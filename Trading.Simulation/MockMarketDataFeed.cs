@@ -1,8 +1,7 @@
 ﻿using Trading.Domain.Entities;
 using Trading.Domain.Interfaces;
 
-namespace Trading.Infrastructure.MarketData;
-
+namespace Trading.Simulation;
 
 public class MockMarketDataFeed : IMarketDataFeed
 {
@@ -16,7 +15,7 @@ public class MockMarketDataFeed : IMarketDataFeed
         {
             // small random move
             last += (decimal)((rnd.NextDouble() - 0.5) * 0.2);
-            
+
             decimal bid = last - spread / 2m;
             decimal ask = last + spread / 2m;
 
