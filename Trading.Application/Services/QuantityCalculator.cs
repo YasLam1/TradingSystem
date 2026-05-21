@@ -1,6 +1,6 @@
 ﻿using Trading.Domain.Entities;
 
-namespace Trading.Domain.Services;
+namespace Trading.Application.Services;
 
 /// <summary>
 /// Choose quantity so that if stop is hit,

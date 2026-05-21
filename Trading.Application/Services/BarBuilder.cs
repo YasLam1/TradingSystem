@@ -1,6 +1,6 @@
 ﻿using Trading.Domain.Entities;
 
-namespace Trading.Domain.Services;
+namespace Trading.Application.Services;
 
 public class BarBuilder
 {

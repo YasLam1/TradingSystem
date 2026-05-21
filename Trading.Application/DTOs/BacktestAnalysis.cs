@@ -17,13 +17,13 @@ public class BacktestAnalysis
     {
         return new BacktestAnalysis
         {
-            // ---- TOTAL RETURN ----
+            // TOTAL RETURN
             TotalReturnMessage =
                 r.TotalReturnPct > 0
                     ? $"Total Return: {r.TotalReturnPct:F2}% → Strategy made money."
                     : $"Total Return: {r.TotalReturnPct:F2}% → Strategy lost money.",
 
-            // ---- MAX DRAWDOWN ----
+            // MAX DRAWDOWN 
             MaxDrawdownMessage =
                 r.MaxDrawdownPct > -10
                     ? $"Max Drawdown: {r.MaxDrawdownPct:F2}% → Very safe."
@@ -31,20 +31,20 @@ public class BacktestAnalysis
                         ? $"Max Drawdown: {r.MaxDrawdownPct:F2}% → Acceptable but uncomfortable."
                         : $"Max Drawdown: {r.MaxDrawdownPct:F2}% → Very risky.",
 
-            // ---- TRADE COUNT ----
+            // TRADE COUNT 
             TradeCountMessage =
                 $"Trades: {r.WinCount + r.LossCount}",
 
             WinLossMessage =
                 $"Wins: {r.WinCount}, Losses: {r.LossCount}",
 
-            // ---- AVG WIN / LOSS ----
+            // AVG WIN / LOSS 
             AvgWinLossMessage =
                 r.AvgWin > r.AvgLoss
                     ? $"Avg Win ({r.AvgWin:F2}%) > Avg Loss ({r.AvgLoss:F2}%) → Good trade structure."
                     : $"Avg Win ({r.AvgWin:F2}%) <= Avg Loss ({r.AvgLoss:F2}%) → Losing structure.",
 
-            // ---- SHARPE RATIO ----
+            // SHARPE RATIO 
             SharpeRatioMessage =
                 r.SharpeRatio < 0
                     ? $"Sharpe Ratio: {r.SharpeRatio:F2} → Bad."
@@ -54,7 +54,7 @@ public class BacktestAnalysis
                             ? $"Sharpe Ratio: {r.SharpeRatio:F2} → Decent."
                             : $"Sharpe Ratio: {r.SharpeRatio:F2} → Very good.",
 
-            // ---- PROFIT FACTOR ----
+            // PROFIT FACTOR 
             ProfitFactorMessage =
                 r.ProfitFactor < 1
                     ? $"Profit Factor: {r.ProfitFactor:F2} → Losing strategy."
@@ -62,7 +62,7 @@ public class BacktestAnalysis
                         ? $"Profit Factor: {r.ProfitFactor:F2} → Weak edge."
                         : $"Profit Factor: {r.ProfitFactor:F2} → Good edge.",
 
-            // ---- EXPECTANCY ----
+            // EXPECTANCY 
             ExpectancyMessage =
                 r.Expectancy <= 0
                     ? $"Expectancy: {r.Expectancy:F4} → No edge per trade."
